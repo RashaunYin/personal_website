@@ -1,49 +1,53 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <table border="1" id="books" style="text-align:center">
-	<tr style="background-color:greenyellow; text-align:center">
+	<tr style="background-color:#99bcac; text-align:center">
 		<th id="ISBN">书号</th>
 		<th id="title">书名</th>
 		<th id="price">价格</th>
 	</tr>
-	<tr>
+	<tr style="text-align:center">
 		<td>5744885</td>
 		<td>Java programming</td>
 		<td>81</td>
 	</tr>
-	<tr>
+	<tr style="background-color:#d5ebe1; text-align:center">
 		<td>2323885</td>
 		<td>C# programming</td>
 		<td>87</td>
 	</tr>
-	<tr>
+	<tr style="text-align:center">
 		<td>8888</td>
 		<td>Python programming</td>
 		<td>68</td>
 	</tr>
-	<tr>
+	<tr style="text-align:center">
 		<td>8767885</td>
 		<td>NodeJS</td>
 		<td>90</td>
 	</tr>
-	<tr>
+	<tr style="background-color:#d5ebe1; text-align:center">
 		<td>r64547565647689</td>
 		<td>C++ programming</td>
 		<td>68</td>
 	</tr>
-	3
-	<tr>
+	<tr style="text-align:center">
 		<td>45634748758478</td>
 		<td>MongoDB</td>
 		<td>90</td>
 	</tr>
-	<tr>
+	<tr style="text-align:center">
 		<td>675665647689</td>
 		<td>operation system</td>
 		<td>68</td>
 	</tr>
-	<tr>
+	<tr style="background-color:#d5ebe1; text-align:center">
 		<td>2342353758478</td>
 		<td>XML 技术</td>
 		<td>90</td>
+	</tr>
+	<tr style="text-align:center">
+		<td>202302150965</td>
+		<td>yrx</td>
+		<td>###</td>
 	</tr>
 </table>
