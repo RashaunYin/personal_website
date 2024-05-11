@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<books>
+  <book>
+    <ISBN>8475484848</ISBN>
+    <title>XML 技术</title>
+    <price>80</price>
+  </book>
+  <book>
+    <ISBN>35235348</ISBN>
+    <title>Python programming</title>
+    <price>65</price>
+  </book>
+  <book>
+    <ISBN>67676348</ISBN>
+    <title>Java development</title>
+    <price>76</price>
+  </book>
+  <book>
+    <ISBN>27974348</ISBN>
+    <title>NodeJS development</title>
+    <price>90</price>
+  </book>
+</books>
