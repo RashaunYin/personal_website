@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<table border="1" id="books" >
+<table border="1" id="books" style="text-align:center">
 	<tr style="background-color:greenyellow; text-align:center">
 		<th id="ISBN">书号</th>
 		<th id="title">书名</th>
