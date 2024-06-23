@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据大屏展示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .row {
+            display: flex;
+            width: 80%;
+            margin: 20px 0;
+            justify-content: space-between;
+        }
+        .fig2 {
+            flex: 1;
+            margin: 10px;
+            background: #fff;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        .fig8 {
+            flex: 1;
+            margin: 10px;
+            background: #fff;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        img {
+            width: 100%;
+            height: auto;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>数据大屏展示</h1>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>公司离职比例</h2>
+            <iframe src="pie.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>数据相关性热图</h2>
+            <iframe src="数据相关性热图.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig8">
+            <h2>工作年限与月收入的关系</h2>
+            <iframe src="工作年限与月收入的关系.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>婚恋状况与离职的关系分析</h2>
+            <iframe src="婚恋状况与离职的关系分析.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>月收入与离职的关系分析</h2>
+            <iframe src="月收入与离职的关系分析.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>员工所在部门与离职的关系分析</h2>
+            <iframe src="员工所在部门与离职的关系分析.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>年龄与离职的关系分析</h2>
+            <iframe src="年龄与离职的关系分析.html"></iframe>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="fig2">
+            <h2>不同职位员工的平均环境满意度与离职的关系分析</h2>
+            <iframe src="不同职位员工的平均环境满意度与离职的关系分析.html"></iframe>
+        </div>
+    </div>
+
+</body>
+</html>
