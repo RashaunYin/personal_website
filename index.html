@@ -1,41 +1,111 @@
 <!DOCTYPE HTML>
 <html>
-	<head>
-		<title>Yin_study</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
-	</head>
-	<body class="is-preload">
-		<div id="wrapper">
-			<div id="bg"></div>
-			<div id="overlay"></div>
-			<div id="main">
+<head>
+	<title>Yin_study</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="assets/css/main.css" />
+	<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+	<style>
+		/* 导航按钮样式 */
+		.nav-toggle {
+			position: fixed;
+			top: 20px;
+			left: 20px;
+			cursor: pointer;
+			font-size: 24px;
+			z-index: 1001;
+		}
 
-				<!-- Header -->
-					<header id="header">
-						<h1>该网站仅做学习使用</h1>
-						<p>XML作业点击下面</p>
-						<nav>
-							<ul>
-								<li><a href="0411作业.html" class="icon solid fa-envelope"><span class="label">XML作业点这里</span></a></li>
+		/* 侧边导航栏样式 */
+		.nav-menu {
+			height: 100%;
+			width: 0;
+			position: fixed;
+			top: 0;
+			left: 0;
+			background-color: rgba(255, 255, 255, 0.9);
+			overflow-x: hidden;
+			transition: 0.5s;
+			z-index: 1000;
+			padding-top: 60px;
+		}
 
-							</ul>
-						</nav>
-					</header>
+		.nav-menu a {
+			padding: 10px 20px;
+			text-decoration: none;
+			font-size: 22px;
+			color: #333;
+			display: block;
+			transition: 0.3s;
+		}
 
-				<!-- Footer -->
-					<footer id="footer">
-						<span class="copyright"><a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2022015963号</a></span>
-					</footer>
+		.nav-menu a:hover {
+			color: #f1f1f1;
+		}
 
-			</div>
-		</div>
-		<script>
-			window.onload = function() { document.body.classList.remove('is-preload'); }
-			window.ontouchmove = function() { return false; }
-			window.onorientationchange = function() { document.body.scrollTop = 0; }
-		</script>
-	</body>
+		.nav-menu .close-btn {
+			position: absolute;
+			top: 20px;
+			right: 25px;
+			font-size: 36px;
+			margin-left: 50px;
+		}
+	</style>
+</head>
+<body class="is-preload">
+<div id="wrapper">
+	<div id="bg"></div>
+	<div id="overlay"></div>
+	<div id="main">
+
+		<!-- Header -->
+		<header id="header">
+			<h1>该网站仅做学习使用</h1>
+			<p>XML作业点击下面</p>
+			<nav>
+				<ul>
+					<li><a href="0411作业.html" class="icon solid fa-envelope"><span class="label">XML作业点这里</span></a></li>
+				</ul>
+			</nav>
+		</header>
+
+		<!-- Footer -->
+		<footer id="footer">
+			<span class="copyright"><a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2022015963号</a></span>
+		</footer>
+
+	</div>
+</div>
+
+<!-- 导航按钮 -->
+<div class="nav-toggle">☰</div>
+
+<!-- 侧边导航栏 -->
+<div class="nav-menu" id="myNav">
+	<a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
+	<a href="0411作业.html">XML作业</a>
+	<a href="qimo/数据大屏.html">可视化作业</a>
+	<!-- 添加更多链接 -->
+</div>
+
+<script>
+	window.onload = function() { document.body.classList.remove('is-preload'); }
+	window.ontouchmove = function() { return false; }
+	window.onorientationchange = function() { document.body.scrollTop = 0; }
+
+	// 打开侧边导航栏
+	function openNav() {
+		document.getElementById("myNav").style.width = "250px";
+	}
+
+	// 关闭侧边导航栏
+	function closeNav() {
+		document.getElementById("myNav").style.width = "0";
+	}
+
+	// 添加导航按钮的点击事件监听器
+	document.querySelector('.nav-toggle').addEventListener('click', openNav);
+</script>
+</body>
 </html>
