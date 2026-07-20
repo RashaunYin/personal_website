@@ -1,111 +1,1575 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-	<title>Yin_study</title>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-	<link rel="stylesheet" href="assets/css/main.css" />
-	<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
-	<style>
-		/* 导航按钮样式 */
-		.nav-toggle {
-			position: fixed;
-			top: 20px;
-			left: 20px;
-			cursor: pointer;
-			font-size: 24px;
-			z-index: 1001;
-		}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>房屋出租管理系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <style>
+        /* ===== 全局重置 & 变量 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-		/* 侧边导航栏样式 */
-		.nav-menu {
-			height: 100%;
-			width: 0;
-			position: fixed;
-			top: 0;
-			left: 0;
-			background-color: rgba(255, 255, 255, 0.9);
-			overflow-x: hidden;
-			transition: 0.5s;
-			z-index: 1000;
-			padding-top: 60px;
-		}
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #dbeafe;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.25s ease;
+        }
 
-		.nav-menu a {
-			padding: 10px 20px;
-			text-decoration: none;
-			font-size: 22px;
-			color: #333;
-			display: block;
-			transition: 0.3s;
-		}
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+            display: flex;
+            min-height: 100vh;
+        }
 
-		.nav-menu a:hover {
-			color: #f1f1f1;
-		}
+        /* ===== 滚动条 ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--gray-100);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
 
-		.nav-menu .close-btn {
-			position: absolute;
-			top: 20px;
-			right: 25px;
-			font-size: 36px;
-			margin-left: 50px;
-		}
-	</style>
+        /* ===== 侧边栏 ===== */
+        .sidebar {
+            width: 240px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-brand {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+            padding: 0 8px 24px 8px;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-brand span {
+            color: var(--primary);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--gray-600);
+            font-weight: 500;
+            font-size: 14px;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+        .nav-item:hover {
+            background: var(--gray-100);
+            color: var(--gray-900);
+        }
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+        .nav-item .icon {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--gray-200);
+            padding-top: 16px;
+            font-size: 12px;
+            color: var(--gray-400);
+            text-align: center;
+        }
+
+        /* ===== 主内容 ===== */
+        .main {
+            margin-left: 240px;
+            flex: 1;
+            padding: 28px 32px 40px;
+            min-height: 100vh;
+        }
+
+        /* ===== 页面标题 ===== */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .page-header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        .page-header .subtitle {
+            color: var(--gray-500);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+        .stat-card .label {
+            font-size: 13px;
+            color: var(--gray-500);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-top: 4px;
+        }
+        .stat-card .value .unit {
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--gray-400);
+            margin-left: 4px;
+        }
+        .stat-card.primary .value {
+            color: var(--primary);
+        }
+        .stat-card.success .value {
+            color: var(--success);
+        }
+        .stat-card.warning .value {
+            color: var(--warning);
+        }
+        .stat-card.danger .value {
+            color: var(--danger);
+        }
+
+        /* ===== 图表容器 ===== */
+        .chart-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px 24px 24px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            margin-bottom: 28px;
+        }
+        .chart-container h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--gray-700);
+        }
+        .chart-wrap {
+            position: relative;
+            height: 260px;
+        }
+
+        /* ===== 表格容器 ===== */
+        .table-container {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .table-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        .table-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            padding: 0 4px 4px 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 800px;
+        }
+        table th {
+            background: var(--gray-50);
+            color: var(--gray-600);
+            font-weight: 600;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 2px solid var(--gray-200);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--gray-100);
+            color: var(--gray-700);
+            vertical-align: middle;
+        }
+        table tr:hover td {
+            background: var(--gray-50);
+        }
+        table .status-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-badge.occupied {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-badge.vacant {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+        .btn:hover {
+            background: var(--gray-200);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-success:hover {
+            background: #16a34a;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        .btn-sm {
+            padding: 4px 12px;
+            font-size: 12px;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--gray-300);
+        }
+        .btn-outline:hover {
+            background: var(--gray-50);
+        }
+
+        /* ===== 筛选 & 控件 ===== */
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-300);
+            font-size: 13px;
+            background: white;
+            color: var(--gray-700);
+            outline: none;
+            transition: var(--transition);
+        }
+        .filter-group select:focus,
+        .filter-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* ===== 月份选择器 ===== */
+        .month-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .month-selector select {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-300);
+            font-size: 14px;
+            background: white;
+            font-weight: 500;
+            outline: none;
+        }
+
+        /* ===== 弹窗 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            max-width: 640px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96) translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .modal h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+        }
+        .modal .form-group {
+            margin-bottom: 16px;
+        }
+        .modal .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 4px;
+        }
+        .modal .form-group input,
+        .modal .form-group select,
+        .modal .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: var(--transition);
+            background: white;
+        }
+        .modal .form-group input:focus,
+        .modal .form-group select:focus,
+        .modal .form-group textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+        .modal .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .modal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--gray-400);
+        }
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .empty-state p {
+            font-size: 15px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main {
+                margin-left: 0;
+                padding: 20px 16px;
+            }
+            .modal .form-row {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .page-header h1 {
+                font-size: 20px;
+            }
+            .table-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .table-actions {
+                justify-content: stretch;
+            }
+            .table-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .month-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .chart-wrap {
+                height: 180px;
+            }
+            /* 移动端菜单按钮 */
+            .menu-toggle {
+                display: flex !important;
+            }
+        }
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray-700);
+            padding: 4px;
+        }
+        .menu-toggle:hover {
+            color: var(--gray-900);
+        }
+
+        /* ===== 辅助类 ===== */
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: var(--gray-400);
+            font-size: 13px;
+        }
+        .mt-16 {
+            margin-top: 16px;
+        }
+        .mb-16 {
+            margin-bottom: 16px;
+        }
+        .gap-8 {
+            gap: 8px;
+        }
+        .flex {
+            display: flex;
+        }
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .w-full {
+            width: 100%;
+        }
+
+        /* ===== 页面切换 ===== */
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* ===== 表格内可编辑 ===== */
+        .editable-cell {
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+        .editable-cell:hover {
+            background: var(--primary-light);
+        }
+        .editable-cell input {
+            border: 1px solid var(--primary);
+            border-radius: 4px;
+            padding: 2px 6px;
+            width: 100%;
+            font-size: 13px;
+            background: white;
+            outline: none;
+        }
+
+        /* ===== 提示 ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--gray-900);
+            color: white;
+            padding: 14px 24px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            z-index: 300;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.35s ease;
+            pointer-events: none;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.success {
+            background: var(--success);
+        }
+        .toast.error {
+            background: var(--danger);
+        }
+        .toast.warning {
+            background: var(--warning);
+        }
+    </style>
 </head>
-<body class="is-preload">
-<div id="wrapper">
-	<div id="bg"></div>
-	<div id="overlay"></div>
-	<div id="main">
+<body>
 
-		<!-- Header -->
-		<header id="header">
-			<h1>该网站仅做学习使用</h1>
-			<p>XML作业点击下面</p>
-			<nav>
-				<ul>
-					<li><a href="0411作业.html" class="icon solid fa-envelope"><span class="label">XML作业点这里</span></a></li>
-				</ul>
-			</nav>
-		</header>
+<!-- ===== 侧边栏 ===== -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        🏠 <span>房屋出租<br>管理系统</span>
+    </div>
+    <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard">
+            <span class="icon">📊</span> 仪表盘
+        </button>
+        <button class="nav-item" data-page="tenants">
+            <span class="icon">👤</span> 租客管理
+        </button>
+        <button class="nav-item" data-page="monthly">
+            <span class="icon">📅</span> 月度租金
+        </button>
+    </nav>
+    <div class="sidebar-footer">
+        v1.0 · 数据存储在本地
+    </div>
+</aside>
 
-		<!-- Footer -->
-		<footer id="footer">
-			<span class="copyright"><a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备2022015963号</a></span>
-		</footer>
+<!-- ===== 主内容 ===== -->
+<main class="main">
 
-	</div>
+    <!-- 移动端菜单按钮 -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <button class="menu-toggle" id="menuToggle" style="display:none;">☰</button>
+        <span style="font-size:18px;font-weight:600;color:var(--gray-800);display:none;" id="mobileBrand">🏠 房屋出租</span>
+    </div>
+
+    <!-- ===================== 仪表盘 ===================== -->
+    <section class="page active" id="page-dashboard">
+        <div class="page-header">
+            <div>
+                <h1>📊 仪表盘</h1>
+                <div class="subtitle">房屋出租数据总览</div>
+            </div>
+            <button class="btn btn-outline" onclick="refreshData()">🔄 刷新数据</button>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card primary">
+                <div class="label">🏠 总房间数</div>
+                <div class="value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card success">
+                <div class="label">✅ 在租</div>
+                <div class="value" id="statOccupied">0</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="label">📭 空置</div>
+                <div class="value" id="statVacant">0</div>
+            </div>
+            <div class="stat-card primary">
+                <div class="label">💰 年租金总计</div>
+                <div class="value" id="statTotalRent">¥0</div>
+            </div>
+        </div>
+
+        <!-- 月度租金图表 -->
+        <div class="chart-container">
+            <h3>📈 各月份租金统计</h3>
+            <div class="chart-wrap">
+                <canvas id="rentChart"></canvas>
+            </div>
+        </div>
+
+        <!-- 快速查看空置房间 -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>📭 当前空置房间</h3>
+                <span class="text-muted" id="vacantCount">共 0 间</span>
+            </div>
+            <div class="table-scroll" id="vacantList">
+                <div class="empty-state">
+                    <div class="icon">🎉</div>
+                    <p>暂无空置房间</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 租客管理 ===================== -->
+    <section class="page" id="page-tenants">
+        <div class="page-header">
+            <div>
+                <h1>👤 租客管理</h1>
+                <div class="subtitle">管理所有房间的租客信息</div>
+            </div>
+            <button class="btn btn-primary" onclick="openTenantModal()">＋ 添加租客</button>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3>📋 租客信息列表</h3>
+                <div class="filter-group">
+                    <select id="tenantFilter" onchange="renderTenants()">
+                        <option value="all">全部状态</option>
+                        <option value="在租">在租</option>
+                        <option value="空置">空置</option>
+                    </select>
+                    <input type="text" id="tenantSearch" placeholder="搜索房号/姓名..." oninput="renderTenants()" />
+                </div>
+            </div>
+            <div class="table-scroll" id="tenantTableWrap">
+                <!-- 由 JS 渲染 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== 月度租金 ===================== -->
+    <section class="page" id="page-monthly">
+        <div class="page-header">
+            <div>
+                <h1>📅 月度租金统计</h1>
+                <div class="subtitle">查看各月份租金明细</div>
+            </div>
+            <div class="month-selector">
+                <label style="font-weight:500;font-size:14px;">选择月份：</label>
+                <select id="monthSelector" onchange="renderMonthly()">
+                    <option value="一月">一月</option>
+                    <option value="二月">二月</option>
+                    <option value="三月">三月</option>
+                    <option value="四月">四月</option>
+                    <option value="五月">五月</option>
+                    <option value="六月">六月</option>
+                    <option value="七月">七月</option>
+                    <option value="八月">八月</option>
+                    <option value="九月">九月</option>
+                    <option value="十月">十月</option>
+                    <option value="十一月">十一月</option>
+                    <option value="十二月">十二月</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h3 id="monthlyTitle">📋 一月租金明细</h3>
+                <span class="text-muted" id="monthlyTotal">总计：¥0</span>
+            </div>
+            <div class="table-scroll" id="monthlyTableWrap">
+                <!-- 由 JS 渲染 -->
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ===== 弹窗：租客表单 ===== -->
+<div class="modal-overlay" id="tenantModal">
+    <div class="modal">
+        <h2 id="tenantModalTitle">添加租客</h2>
+        <form id="tenantForm" onsubmit="saveTenant(event)">
+            <input type="hidden" id="editRoom" value="" />
+            <div class="form-row">
+                <div class="form-group">
+                    <label>房号 *</label>
+                    <select id="fRoom" required>
+                        <option value="">请选择房号</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>出租状态 *</label>
+                    <select id="fStatus" required>
+                        <option value="在租">在租</option>
+                        <option value="空置">空置</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>月租金 (元)</label>
+                    <input type="number" id="fRent" placeholder="如: 500" step="0.01" />
+                </div>
+                <div class="form-group">
+                    <label>押金 (元)</label>
+                    <input type="number" id="fDeposit" placeholder="如: 1000" step="0.01" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>租客姓名</label>
+                    <input type="text" id="fName" placeholder="姓名" />
+                </div>
+                <div class="form-group">
+                    <label>性别</label>
+                    <select id="fGender">
+                        <option value="">请选择</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>联系电话</label>
+                    <input type="text" id="fPhone" placeholder="手机号" />
+                </div>
+                <div class="form-group">
+                    <label>身份证号码</label>
+                    <input type="text" id="fIdCard" placeholder="身份证号" />
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>紧急联系人</label>
+                    <input type="text" id="fEmergency" placeholder="紧急联系人姓名" />
+                </div>
+                <div class="form-group">
+                    <label>紧急联系人电话</label>
+                    <input type="text" id="fEmergencyPhone" placeholder="紧急联系人电话" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>备注</label>
+                <textarea id="fNote" rows="2" placeholder="其他备注信息"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeTenantModal()">取消</button>
+                <button type="submit" class="btn btn-primary">保存</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<!-- 导航按钮 -->
-<div class="nav-toggle">☰</div>
-
-<!-- 侧边导航栏 -->
-<div class="nav-menu" id="myNav">
-	<a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
-	<a href="0411作业.html">XML作业</a>
-	<a href="qimo/数据大屏.html">可视化作业</a>
-	<!-- 添加更多链接 -->
-</div>
+<!-- ===== Toast 提示 ===== -->
+<div class="toast" id="toast"></div>
 
 <script>
-	window.onload = function() { document.body.classList.remove('is-preload'); }
-	window.ontouchmove = function() { return false; }
-	window.onorientationchange = function() { document.body.scrollTop = 0; }
+    // ================================================================
+    //  DATA LAYER
+    // ================================================================
 
-	// 打开侧边导航栏
-	function openNav() {
-		document.getElementById("myNav").style.width = "250px";
-	}
+    const ROOMS = [
+        '门店', '101', '201', '202', '203', '204', '205',
+        '301', '302', '303', '304', '305',
+        '401', '402', '403', '404', '405',
+        '501', '502', '503', '504', '505',
+        '601'
+    ];
 
-	// 关闭侧边导航栏
-	function closeNav() {
-		document.getElementById("myNav").style.width = "0";
-	}
+    const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
-	// 添加导航按钮的点击事件监听器
-	document.querySelector('.nav-toggle').addEventListener('click', openNav);
+    // 初始租客数据（来自Excel）
+    const INITIAL_TENANTS = {
+        '门店': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '101': { status: '空置', rent: '260~280', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调' },
+        '201': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '202': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '203': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '204': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调（自己装）' },
+        '205': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '301': { status: '在租', rent: '460~480', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '302': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '303': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '304': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '305': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '401': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '402': { status: '在租', rent: '280', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调（自己装），水2.5，电1，十年租客' },
+        '403': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '404': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '冰箱、洗衣机' },
+        '405': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '501': { status: '在租', rent: '390', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '502': { status: '在租', rent: '300', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '503': { status: '在租', rent: '230', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调' },
+        '504': { status: '在租', rent: '570', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '505': { status: '在租', rent: '400', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '比较热' },
+        '601': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' }
+    };
+
+    // 生成月度租金初始数据（每个房间每个月）
+    function generateMonthlyData() {
+        const data = {};
+        MONTHS.forEach(month => {
+            data[month] = {};
+            ROOMS.forEach(room => {
+                data[month][room] = {
+                    tenant: '',
+                    baseRent: '',
+                    lastElec: 0,
+                    thisElec: 0,
+                    actualElec: 0,
+                    elecFee: 0,
+                    lastWater: 0,
+                    thisWater: 0,
+                    actualWater: 0,
+                    waterFee: 0,
+                    total: 0
+                };
+            });
+        });
+        return data;
+    }
+
+    // ================================================================
+    //  STORE
+    // ================================================================
+
+    function getStore() {
+        const raw = localStorage.getItem('rentSystem');
+        if (raw) {
+            try { return JSON.parse(raw); } catch (e) {}
+        }
+        return null;
+    }
+
+    function saveStore(store) {
+        localStorage.setItem('rentSystem', JSON.stringify(store));
+    }
+
+    function initStore() {
+        let store = getStore();
+        if (!store) {
+            store = {
+                tenants: JSON.parse(JSON.stringify(INITIAL_TENANTS)),
+                monthly: generateMonthlyData()
+            };
+            saveStore(store);
+        }
+        // 确保所有房间都存在
+        let needSave = false;
+        ROOMS.forEach(room => {
+            if (!store.tenants[room]) {
+                store.tenants[room] = { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '',
+                    emergency: '', emergencyPhone: '', idCard: '', note: '' };
+                needSave = true;
+            }
+            MONTHS.forEach(month => {
+                if (!store.monthly[month]) store.monthly[month] = {};
+                if (!store.monthly[month][room]) {
+                    store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0,
+                        actualElec: 0, elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0,
+                        waterFee: 0, total: 0 };
+                    needSave = true;
+                }
+            });
+        });
+        if (needSave) saveStore(store);
+        return store;
+    }
+
+    // ================================================================
+    //  APP STATE
+    // ================================================================
+
+    let store = initStore();
+    let chartInstance = null;
+
+    // ================================================================
+    //  UTILITY
+    // ================================================================
+
+    function getStatusBadge(status) {
+        if (status === '在租') return `<span class="status-badge occupied">在租</span>`;
+        return `<span class="status-badge vacant">空置</span>`;
+    }
+
+    function parseRentValue(val) {
+        if (!val) return 0;
+        if (typeof val === 'number') return val;
+        const str = String(val).replace(/[^0-9.]/g, '');
+        const num = parseFloat(str);
+        return isNaN(num) ? 0 : num;
+    }
+
+    function getRentNumber(tenant) {
+        const v = tenant.rent;
+        if (!v) return 0;
+        if (typeof v === 'number') return v;
+        const match = String(v).match(/(\d+\.?\d*)/);
+        if (match) return parseFloat(match[1]);
+        return 0;
+    }
+
+    function formatCurrency(val) {
+        if (val === undefined || val === null || isNaN(val)) return '¥0';
+        return '¥' + Math.round(val).toLocaleString();
+    }
+
+    function showToast(msg, type = '') {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = 'toast ' + type;
+        setTimeout(() => el.classList.add('show'), 10);
+        clearTimeout(el._timer);
+        el._timer = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ================================================================
+    //  NAVIGATION
+    // ================================================================
+
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const page = this.dataset.page;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            // 关闭移动端侧栏
+            document.getElementById('sidebar').classList.remove('open');
+            // 渲染对应页面
+            if (page === 'dashboard') renderDashboard();
+            else if (page === 'tenants') renderTenants();
+            else if (page === 'monthly') renderMonthly();
+        });
+    });
+
+    // 移动端菜单
+    document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('open');
+    });
+
+    // 响应式：显示移动端菜单按钮
+    function checkMobile() {
+        const toggle = document.getElementById('menuToggle');
+        const brand = document.getElementById('mobileBrand');
+        if (window.innerWidth <= 768) {
+            toggle.style.display = 'flex';
+            brand.style.display = 'inline';
+        } else {
+            toggle.style.display = 'none';
+            brand.style.display = 'none';
+            document.getElementById('sidebar').classList.remove('open');
+        }
+    }
+    window.addEventListener('resize', checkMobile);
+    checkMobile();
+
+    // ================================================================
+    //  DASHBOARD
+    // ================================================================
+
+    function renderDashboard() {
+        const tenants = store.tenants;
+        let total = ROOMS.length;
+        let occupied = 0,
+            vacant = 0;
+        ROOMS.forEach(room => {
+            if (tenants[room] && tenants[room].status === '在租') occupied++;
+            else vacant++;
+        });
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statOccupied').textContent = occupied;
+        document.getElementById('statVacant').textContent = vacant;
+
+        // 年租金总计
+        let totalRent = 0;
+        MONTHS.forEach(month => {
+            const mData = store.monthly[month];
+            if (mData) {
+                ROOMS.forEach(room => {
+                    if (mData[room] && mData[room].total) {
+                        totalRent += parseFloat(mData[room].total) || 0;
+                    }
+                });
+            }
+        });
+        document.getElementById('statTotalRent').textContent = formatCurrency(totalRent);
+
+        // 空置列表
+        const vacantRooms = ROOMS.filter(r => tenants[r] && tenants[r].status === '空置');
+        const container = document.getElementById('vacantList');
+        if (vacantRooms.length === 0) {
+            container.innerHTML = `<div class="empty-state"><div class="icon">🎉</div><p>暂无空置房间</p></div>`;
+        } else {
+            let html =
+                `<table><thead><tr><th>房号</th><th>月租金</th><th>备注</th></tr></thead><tbody>`;
+            vacantRooms.forEach(room => {
+                const t = tenants[room];
+                html += `<tr><td><strong>${room}</strong></td><td>${t.rent || '-'}</td><td>${t.note || '-'}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+        document.getElementById('vacantCount').textContent = `共 ${vacantRooms.length} 间`;
+
+        // 图表
+        renderChart();
+    }
+
+    function renderChart() {
+        const ctx = document.getElementById('rentChart').getContext('2d');
+        const monthlyTotals = MONTHS.map(month => {
+            let sum = 0;
+            const mData = store.monthly[month];
+            if (mData) {
+                ROOMS.forEach(room => {
+                    if (mData[room] && mData[room].total) {
+                        sum += parseFloat(mData[room].total) || 0;
+                    }
+                });
+            }
+            return Math.round(sum);
+        });
+
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: MONTHS,
+                datasets: [{
+                    label: '月租金收入 (元)',
+                    data: monthlyTotals,
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '¥' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return '¥' + value; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ================================================================
+    //  TENANTS
+    // ================================================================
+
+    function renderTenants() {
+        const filter = document.getElementById('tenantFilter').value;
+        const search = document.getElementById('tenantSearch').value.trim().toLowerCase();
+        const tenants = store.tenants;
+
+        let list = ROOMS.filter(room => {
+            const t = tenants[room];
+            if (!t) return false;
+            if (filter !== 'all' && t.status !== filter) return false;
+            if (search) {
+                const match = room.toLowerCase().includes(search) ||
+                    (t.name && t.name.toLowerCase().includes(search)) ||
+                    (t.phone && t.phone.includes(search));
+                if (!match) return false;
+            }
+            return true;
+        });
+
+        const wrap = document.getElementById('tenantTableWrap');
+        if (list.length === 0) {
+            wrap.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>没有找到匹配的租客信息</p></div>`;
+            return;
+        }
+
+        let html = `<table>
+                <thead><tr>
+                    <th>房号</th><th>状态</th><th>月租金</th><th>押金</th>
+                    <th>租客</th><th>性别</th><th>电话</th>
+                    <th>紧急联系人</th><th>紧急电话</th><th>备注</th>
+                    <th>操作</th>
+                </tr></thead><tbody>`;
+
+        list.forEach(room => {
+            const t = tenants[room];
+            html += `<tr>
+                    <td><strong>${room}</strong></td>
+                    <td>${getStatusBadge(t.status)}</td>
+                    <td>${t.rent || '-'}</td>
+                    <td>${t.deposit || '-'}</td>
+                    <td>${t.name || '-'}</td>
+                    <td>${t.gender || '-'}</td>
+                    <td>${t.phone || '-'}</td>
+                    <td>${t.emergency || '-'}</td>
+                    <td>${t.emergencyPhone || '-'}</td>
+                    <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.note || '-'}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editTenant('${room}')">✎</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteTenant('${room}')">✕</button>
+                    </td>
+                </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        wrap.innerHTML = html;
+    }
+
+    // ----- 弹窗 -----
+    function openTenantModal(room = null) {
+        const modal = document.getElementById('tenantModal');
+        const form = document.getElementById('tenantForm');
+        form.reset();
+        document.getElementById('editRoom').value = '';
+
+        // 填充房号下拉
+        const sel = document.getElementById('fRoom');
+        sel.innerHTML = '<option value="">请选择房号</option>';
+        ROOMS.forEach(r => {
+            const opt = document.createElement('option');
+            opt.value = r;
+            opt.textContent = r;
+            sel.appendChild(opt);
+        });
+
+        if (room) {
+            const t = store.tenants[room];
+            if (t) {
+                document.getElementById('tenantModalTitle').textContent = '编辑租客信息';
+                document.getElementById('editRoom').value = room;
+                document.getElementById('fRoom').value = room;
+                document.getElementById('fStatus').value = t.status || '空置';
+                document.getElementById('fRent').value = t.rent || '';
+                document.getElementById('fDeposit').value = t.deposit || '';
+                document.getElementById('fName').value = t.name || '';
+                document.getElementById('fGender').value = t.gender || '';
+                document.getElementById('fPhone').value = t.phone || '';
+                document.getElementById('fIdCard').value = t.idCard || '';
+                document.getElementById('fEmergency').value = t.emergency || '';
+                document.getElementById('fEmergencyPhone').value = t.emergencyPhone || '';
+                document.getElementById('fNote').value = t.note || '';
+                // 禁用房号编辑
+                document.getElementById('fRoom').disabled = true;
+            }
+        } else {
+            document.getElementById('tenantModalTitle').textContent = '添加租客';
+            document.getElementById('fRoom').disabled = false;
+            // 默认状态
+            document.getElementById('fStatus').value = '在租';
+        }
+
+        modal.classList.add('show');
+    }
+
+    function closeTenantModal() {
+        document.getElementById('tenantModal').classList.remove('show');
+        document.getElementById('fRoom').disabled = false;
+    }
+
+    function saveTenant(e) {
+        e.preventDefault();
+        const room = document.getElementById('fRoom').value;
+        if (!room) { showToast('请选择房号', 'error'); return; }
+
+        const data = {
+            status: document.getElementById('fStatus').value,
+            rent: document.getElementById('fRent').value,
+            deposit: document.getElementById('fDeposit').value,
+            name: document.getElementById('fName').value,
+            gender: document.getElementById('fGender').value,
+            phone: document.getElementById('fPhone').value,
+            idCard: document.getElementById('fIdCard').value,
+            emergency: document.getElementById('fEmergency').value,
+            emergencyPhone: document.getElementById('fEmergencyPhone').value,
+            note: document.getElementById('fNote').value,
+        };
+
+        store.tenants[room] = data;
+        saveStore(store);
+        closeTenantModal();
+        renderTenants();
+        showToast(`✅ ${room} 租客信息已保存`, 'success');
+    }
+
+    function editTenant(room) {
+        openTenantModal(room);
+    }
+
+    function deleteTenant(room) {
+        if (!confirm(`确定要清空 ${room} 的租客信息吗？`)) return;
+        store.tenants[room] = {
+            status: '空置',
+            rent: '',
+            deposit: '',
+            name: '',
+            gender: '',
+            phone: '',
+            emergency: '',
+            emergencyPhone: '',
+            idCard: '',
+            note: ''
+        };
+        saveStore(store);
+        renderTenants();
+        showToast(`🗑️ ${room} 租客信息已清空`, 'warning');
+    }
+
+    // 点击弹窗外部关闭
+    document.getElementById('tenantModal').addEventListener('click', function(e) {
+        if (e.target === this) closeTenantModal();
+    });
+
+    // ================================================================
+    //  MONTHLY
+    // ================================================================
+
+    function carryForward(month) {
+        const monthIndex = MONTHS.indexOf(month);
+        if (monthIndex <= 0) return; // 一月无上月
+        const prevMonth = MONTHS[monthIndex - 1];
+        const prevData = store.monthly[prevMonth];
+        if (!prevData) return;
+
+        const currentData = store.monthly[month];
+        if (!currentData) return;
+
+        let updated = false;
+        ROOMS.forEach(room => {
+            const prevRow = prevData[room];
+            if (!prevRow) return;
+            // 确保当前房间有数据对象
+            if (!currentData[room]) {
+                currentData[room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                    elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+                updated = true;
+            }
+            const curRow = currentData[room];
+            // 只有当前月 lastElec 为空（或0）时，才结转
+            if (curRow.lastElec === undefined || curRow.lastElec === null || curRow.lastElec === 0) {
+                curRow.lastElec = prevRow.thisElec || 0;
+                updated = true;
+            }
+            if (curRow.lastWater === undefined || curRow.lastWater === null || curRow.lastWater === 0) {
+                curRow.lastWater = prevRow.thisWater || 0;
+                updated = true;
+            }
+        });
+        if (updated) {
+            saveStore(store);
+        }
+    }
+
+    function renderMonthly() {
+        const month = document.getElementById('monthSelector').value;
+        // 新增：先结转上月读数
+        carryForward(month);
+
+        const mData = store.monthly[month];
+        const tenants = store.tenants;
+
+        document.getElementById('monthlyTitle').textContent = `📋 ${month}租金明细`;
+
+        let totalSum = 0;
+        let html = `<table>
+                <thead><tr>
+                    <th>房号</th><th>租客</th><th>基本房租</th>
+                    <th>上月用电</th><th>本月用电</th><th>实际用电</th><th>电费</th>
+                    <th>上月用水</th><th>本月用水</th><th>实际用水</th><th>水费</th>
+                    <th>房租总计</th>
+                </tr></thead><tbody>`;
+
+        ROOMS.forEach(room => {
+            const row = mData[room] || { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+            const tenantInfo = tenants[room] || {};
+            const isOccupied = tenantInfo.status === '在租';
+
+            if (!isOccupied) {
+                html += `<tr style="color:var(--gray-400);">
+                        <td>${room}</td><td>-</td><td>-</td>
+                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                        <td>-</td>
+                    </tr>`;
+                return;
+            }
+
+            // ★ 修改点：获取当前值用于输入框
+            const thisElec = row.thisElec ?? '';
+            const thisWater = row.thisWater ?? '';
+
+            const baseRent = tenantInfo.rent || row.baseRent || '';
+            const total = parseFloat(row.total) || 0;
+            totalSum += total;
+
+            // ★ 修改点：添加输入框并绑定事件
+            html += `<tr>
+                    <td><strong>${room}</strong></td>
+                    <td>${tenantInfo.name || row.tenant || '-'}</td>
+                    <td>${baseRent || '-'}</td>
+                    <td>${row.lastElec ?? '-'}</td>
+                    <td>
+                        <input type="number" step="0.01" value="${thisElec}"
+                               style="width:70px; padding:4px 6px; border:1px solid var(--gray-300); border-radius:6px;"
+                               onchange="updateMonthlyField('${month}','${room}','thisElec', this.value)"
+                               onkeydown="if(event.key==='Enter') this.blur()" />
+                    </td>
+                    <td>${row.actualElec ?? '-'}</td>
+                    <td>${row.elecFee ? '¥' + row.elecFee : '-'}</td>
+                    <td>${row.lastWater ?? '-'}</td>
+                    <td>
+                        <input type="number" step="0.01" value="${thisWater}"
+                               style="width:70px; padding:4px 6px; border:1px solid var(--gray-300); border-radius:6px;"
+                               onchange="updateMonthlyField('${month}','${room}','thisWater', this.value)"
+                               onkeydown="if(event.key==='Enter') this.blur()" />
+                    </td>
+                    <td>${row.actualWater ?? '-'}</td>
+                    <td>${row.waterFee ? '¥' + row.waterFee : '-'}</td>
+                    <td><strong>${total ? '¥' + Math.round(total) : '-'}</strong></td>
+                </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        document.getElementById('monthlyTableWrap').innerHTML = html;
+        document.getElementById('monthlyTotal').textContent = `总计：${formatCurrency(totalSum)}`;
+    }
+
+    // ★ 修改点：新增更新月度字段函数
+    function updateMonthlyField(month, room, field, value) {
+        if (!store.monthly[month]) store.monthly[month] = {};
+        if (!store.monthly[month][room]) {
+            store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+        }
+        const row = store.monthly[month][room];
+        row[field] = parseFloat(value) || 0;
+
+        // 重新计算
+        const lastElec = row.lastElec || 0;
+        const thisElec = row.thisElec || 0;
+        row.actualElec = Math.max(0, thisElec - lastElec);
+        row.elecFee = row.actualElec * 1.2;
+
+        const lastWater = row.lastWater || 0;
+        const thisWater = row.thisWater || 0;
+        row.actualWater = Math.max(0, thisWater - lastWater);
+        row.waterFee = row.actualWater * 3;
+
+        const tenant = store.tenants[room];
+        const baseRent = tenant && tenant.rent ? parseRentValue(tenant.rent) : 0;
+        row.total = baseRent + (row.elecFee || 0) + (row.waterFee || 0);
+
+        saveStore(store);
+        renderMonthly(); // 刷新表格
+    }
+
+
+    // ================================================================
+    //  REFRESH
+    // ================================================================
+
+    function refreshData() {
+        store = getStore();
+        if (!store) {
+            store = initStore();
+        }
+        renderDashboard();
+        renderTenants();
+        renderMonthly();
+        showToast('🔄 数据已刷新', 'success');
+    }
+
+    // ================================================================
+    //  INIT
+    // ================================================================
+
+    // 首次加载渲染
+    renderDashboard();
+    renderTenants();
+    renderMonthly();
+
+    // 点击外部关闭弹窗的键盘支持
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeTenantModal();
+        }
+    });
+
+    console.log('🏠 房屋出租管理系统已启动');
+    console.log('📊 数据存储在 localStorage 中');
+    console.log('🏠 房屋出租管理系统已启动（含月度水电编辑）');
 </script>
+
 </body>
 </html>
