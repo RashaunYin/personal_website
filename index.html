@@ -813,6 +813,38 @@
         await pullDataFromGitHub();
     }
 
+    async function safeFetch(url, options = {}) {
+      const { headers = {}, ...restOptions } = options;
+      
+      // 创建一个新的 headers 对象，避免修改原始对象
+      const processedHeaders = {};
+    
+      for (const [key, value] of Object.entries(headers)) {
+        if (typeof value !== 'string') {
+          processedHeaders[key] = String(value);
+          continue;
+        }
+    
+        // 检查是否包含非 ASCII 字符 (简单判断)
+        // ISO-8859-1 范围是 \x00-\xFF
+        // 如果存在超出此范围的字符，则进行 Base64 编码
+        if (/[\u0100-\uffff]/.test(value)) {
+          console.warn(`Header "${key}" contains non-ASCII characters. Encoding to Base64.`);
+          // 使用 unescape(encodeURIComponent()) 确保中文等多字节字符正确转为 Base64
+          processedHeaders[key] = btoa(unescape(encodeURIComponent(value)));
+          // 可选：添加一个标记头，告知后端该字段已编码
+          processedHeaders[`X-Encoded-${key}`] = 'base64';
+        } else {
+          processedHeaders[key] = value;
+        }
+      }
+    
+      return fetch(url, {
+        ...restOptions,
+        headers: processedHeaders
+      });
+    }
+
     // 暴露给全局，供按钮调用
     window.refreshData = refreshData;
     window.openTenantModal = openTenantModal;
