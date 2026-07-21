@@ -4,10 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>房屋出租管理系统 (GitHub同步)</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        /* ===== 全局样式（同原版）===== */
+        /* ===== 全局样式 ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #3b82f6; --primary-dark: #2563eb; --primary-light: #dbeafe;
@@ -150,7 +149,7 @@
         <button class="nav-item" data-page="tenants"><span class="icon">👤</span> 租客管理</button>
         <button class="nav-item" data-page="monthly"><span class="icon">📅</span> 月度租金</button>
     </nav>
-    <div class="sidebar-footer">v1.0 · 数据同步至 GitHub</div>
+    <div class="sidebar-footer">v1.1 · 数据同步至 GitHub</div>
 </aside>
 
 <!-- 主内容 -->
@@ -266,33 +265,43 @@
     // ================================================================
     const REPO_OWNER = 'RashaunYin';      // 替换为你的用户名
     const REPO_NAME = 'personal_website';              // 替换为你的仓库名
-    const FILE_PATH = 'data/rent_data.json';    // 数据文件路径（会自动创建）
+    const FILE_PATH = 'data/rent_data.json';    // 数据文件路径
 
     // ================================================================
     // Base64 工具函数（支持 UTF-8）
     // ================================================================
     function utf8ToBase64(str) {
-        const encoder = new TextEncoder();
-        const bytes = encoder.encode(str);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
+        try {
+            const encoder = new TextEncoder();
+            const bytes = encoder.encode(str);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        } catch (e) {
+            console.error("Base64 Encode Error:", e);
+            return "";
         }
-        return btoa(binary);
     }
 
     function base64ToUtf8(base64) {
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
+        try {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const decoder = new TextDecoder();
+            return decoder.decode(bytes);
+        } catch (e) {
+            console.error("Base64 Decode Error:", e);
+            return "";
         }
-        const decoder = new TextDecoder();
-        return decoder.decode(bytes);
     }
 
     // ================================================================
-    // 数据模型（与之前相同）
+    // 数据模型
     // ================================================================
     const ROOMS = ['门店','101','201','202','203','204','205','301','302','303','304','305','401','402','403','404','405','501','502','503','504','505','601'];
     const MONTHS = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
@@ -352,22 +361,51 @@
     async function loadDataFromGitHub(token) {
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
         const resp = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+        
+        // 如果文件不存在，创建默认数据
         if (resp.status === 404) {
-            // 文件不存在，创建默认数据并上传
             const defaultData = getDefaultStore();
             await uploadData(token, defaultData, null);
             return defaultData;
         }
+        
         if (!resp.ok) throw new Error(`加载数据失败: ${resp.status}`);
+        
         const data = await resp.json();
-        const content = base64ToUtf8(data.content);
-        return JSON.parse(content);
+        
+        // 检查内容是否存在
+        if (!data.content) {
+            console.warn("GitHub 返回的内容为空，重置数据");
+            const defaultData = getDefaultStore();
+            await uploadData(token, defaultData, data.sha || null);
+            return defaultData;
+        }
+
+        const contentStr = base64ToUtf8(data.content);
+        
+        // 检查内容是否为空字符串
+        if (!contentStr || contentStr.trim() === "") {
+             console.warn("GitHub 文件内容为空，重置数据");
+             const defaultData = getDefaultStore();
+             await uploadData(token, defaultData, data.sha);
+             return defaultData;
+        }
+
+        try {
+            return JSON.parse(contentStr);
+        } catch (e) {
+            console.error("JSON 解析失败，原始内容:", contentStr.substring(0, 100));
+            // 如果解析失败，可能是文件损坏，重置为默认数据
+            const defaultData = getDefaultStore();
+            await uploadData(token, defaultData, data.sha);
+            return defaultData;
+        }
     }
 
     async function uploadData(token, content, sha) {
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
         const payload = {
-            message: '更新租金数据 via 网页',
+            message: '更新租金数据 via 网页 (' + new Date().toLocaleString() + ')',
             content: utf8ToBase64(JSON.stringify(content, null, 2)),
             sha: sha || undefined
         };
@@ -389,13 +427,12 @@
     let store = null;
     let chartInstance = null;
 
-    // 同步数据到 GitHub（内部处理 sha）
     async function syncStoreToGitHub() {
         if (!githubToken) { showToast('请先设置 GitHub Token', 'error'); return false; }
         try {
             const sha = await getFileSha(githubToken);
             await uploadData(githubToken, store, sha);
-            showToast('✅ 数据已同步到 GitHub', 'success');
+            // 不显示 toast 以免打扰操作，只在出错时提示
             return true;
         } catch (e) {
             showToast('❌ 同步失败: ' + e.message, 'error');
@@ -404,13 +441,15 @@
         }
     }
 
-    // 从 GitHub 拉取数据并更新界面
     async function pullDataFromGitHub() {
         if (!githubToken) { showToast('请先设置 GitHub Token', 'error'); return false; }
         try {
             store = await loadDataFromGitHub(githubToken);
-            // 补全缺失的房间和月份（防止版本差异）
+            
+            // 数据完整性检查与补全
             let needUpdate = false;
+            
+            // 检查房间
             ROOMS.forEach(room => {
                 if (!store.tenants[room]) {
                     store.tenants[room] = { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' };
@@ -424,11 +463,13 @@
                     }
                 });
             });
+            
             if (needUpdate) {
-                await syncStoreToGitHub(); // 同步修正后的数据
+                await syncStoreToGitHub(); 
             }
+            
             renderAll();
-            showToast('✅ 数据已从 GitHub 加载', 'success');
+            showToast('✅ 数据已同步', 'success');
             return true;
         } catch (e) {
             showToast('❌ 加载数据失败: ' + e.message, 'error');
@@ -741,7 +782,7 @@
         if (!token) { showToast('请输入 Token', 'error'); return; }
         githubToken = token;
         localStorage.setItem('githubToken', token);
-        document.getElementById('githubTokenInput').value = '';
+        document.getElementById('githubTokenInput').value = '已保存（隐藏）';
         showToast('✅ Token 已保存', 'success');
         pullDataFromGitHub();
     });
@@ -787,3 +828,6 @@
 </script>
 </body>
 </html>
+
+
+
