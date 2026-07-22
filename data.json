@@ -1,0 +1,28 @@
+{
+  "tenants": {
+    "门店": { "status": "空置", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "101": { "status": "空置", "rent": "260~280", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "没空调" },
+    "201": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "202": { "status": "空置", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "203": { "status": "空置", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "204": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "没空调（自己装）" },
+    "205": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "301": { "status": "在租", "rent": "460~480", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "302": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "303": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "304": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "305": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "401": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "402": { "status": "在租", "rent": "280", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "没空调（自己装），水2.5，电1，十年租客" },
+    "403": { "status": "空置", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "404": { "status": "空置", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "冰箱、洗衣机" },
+    "405": { "status": "在租", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "501": { "status": "在租", "rent": "390", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "502": { "status": "在租", "rent": "300", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "503": { "status": "在租", "rent": "230", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "没空调" },
+    "504": { "status": "在租", "rent": "570", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" },
+    "505": { "status": "在租", "rent": "400", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "比较热" },
+    "601": { "status": "空置", "rent": "", "deposit": "", "name": "", "gender": "", "phone": "", "emergency": "", "emergencyPhone": "", "idCard": "", "note": "" }
+  },
+  "monthly": {}
+}
