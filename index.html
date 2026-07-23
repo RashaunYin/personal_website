@@ -661,30 +661,9 @@
         .toast.warning {
             background: var(--warning);
         }
-        
-        /* ===== 加载遮罩 ===== */
-        .loading-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.8);
-            z-index: 999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 18px;
-            color: var(--primary);
-            font-weight: 600;
-            backdrop-filter: blur(2px);
-        }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-
-<!-- 加载提示 -->
-<div id="loadingOverlay" class="loading-overlay">
-    正在连接云端数据库...
-</div>
 
 <!-- ===== 侧边栏 ===== -->
 <aside class="sidebar" id="sidebar">
@@ -703,7 +682,7 @@
         </button>
     </nav>
     <div class="sidebar-footer">
-        v3.0 · 数据同步至 GitHub Cloud
+        v2.0 · 数据存储在本地，可保留本月水电到下月
     </div>
 </aside>
 
@@ -723,7 +702,7 @@
                 <h1>📊 仪表盘</h1>
                 <div class="subtitle">房屋出租数据总览</div>
             </div>
-            <button class="btn btn-outline" onclick="forceSync()">🔄 立即同步</button>
+            <button class="btn btn-outline" onclick="refreshData()">🔄 刷新数据</button>
         </div>
 
         <!-- 统计卡片 -->
@@ -918,23 +897,7 @@
 
 <script>
     // ================================================================
-    //  CONFIGURATION & GITHUB API SETUP
-    // ================================================================
-    
-    // ⚠️ 请在此处填入你的 GitHub Personal Access Token
-    // 生成方法: GitHub Settings -> Developer settings -> Personal access tokens -> Tokens (classic)
-    // 权限需要: repo (如果是私有仓库) 或 public_repo (如果是公开仓库)
-    const GITHUB_TOKEN = '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'; 
-    
-    const GITHUB_USER = 'RashaunYin';
-    const GITHUB_REPO = 'personal_website';
-    const DATA_FILE_PATH = 'data.json'; // 数据文件在仓库中的路径
-    
-    // API Base URL
-    const API_BASE = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${DATA_FILE_PATH}`;
-
-    // ================================================================
-    //  DATA LAYER (Static Definitions)
+    //  DATA LAYER
     // ================================================================
 
     const ROOMS = [
@@ -947,121 +910,58 @@
 
     const MONTHS = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
-    // 初始租客数据模板 (用于首次初始化或重置)
-    const INITIAL_TENANTS_TEMPLATE = {
-        '门店': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '101': { status: '空置', rent: '260~280', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '没空调' },
-        '201': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '202': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '203': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '204': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '没空调（自己装）' },
-        '205': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '301': { status: '在租', rent: '460~480', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '302': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '303': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '304': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '305': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '401': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '402': { status: '在租', rent: '280', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '没空调（自己装），水2.5，电1，十年租客' },
-        '403': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '404': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '冰箱、洗衣机' },
-        '405': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '501': { status: '在租', rent: '390', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '502': { status: '在租', rent: '300', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '503': { status: '在租', rent: '230', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '没空调' },
-        '504': { status: '在租', rent: '570', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' },
-        '505': { status: '在租', rent: '400', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '比较热' },
-        '601': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' }
+    // 初始租客数据（来自Excel）
+    const INITIAL_TENANTS = {
+        '门店': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '101': { status: '空置', rent: '260~280', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调' },
+        '201': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '202': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '203': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '204': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调（自己装）' },
+        '205': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '301': { status: '在租', rent: '460~480', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '302': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '303': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '304': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '305': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '401': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '402': { status: '在租', rent: '280', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调（自己装），水2.5，电1，十年租客' },
+        '403': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '404': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '冰箱、洗衣机' },
+        '405': { status: '在租', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '501': { status: '在租', rent: '390', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '502': { status: '在租', rent: '300', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '503': { status: '在租', rent: '230', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '没空调' },
+        '504': { status: '在租', rent: '570', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' },
+        '505': { status: '在租', rent: '400', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '比较热' },
+        '601': { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '',
+            emergencyPhone: '', idCard: '', note: '' }
     };
 
-    // ================================================================
-    //  APP STATE
-    // ================================================================
-
-    let store = { tenants: {}, monthly: {} };
-    let chartInstance = null;
-    let currentFileSha = null; // 用于乐观锁
-    let syncInterval = null;
-
-    // ================================================================
-    //  GITHUB API FUNCTIONS
-    // ================================================================
-
-    async function fetchFromGitHub() {
-        try {
-            const response = await fetch(API_BASE, {
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error('数据文件未找到，请确保 data.json 已创建');
-                }
-                throw new Error(`API Error: ${response.status}`);
-            }
-
-            const data = await response.json();
-            // GitHub API 返回的内容是 base64 编码的
-            const content = JSON.parse(atob(data.content));
-            currentFileSha = data.sha; // 保存 SHA 用于后续更新
-            
-            return content;
-        } catch (error) {
-            console.error('Fetch Error:', error);
-            showToast('❌ 同步失败: ' + error.message, 'error');
-            return null;
-        }
-    }
-
-    async function pushToGitHub(newData) {
-        if (!currentFileSha) {
-            showToast('❌ 错误: 缺少文件版本标识 (SHA)', 'error');
-            return false;
-        }
-
-        try {
-            const contentBase64 = btoa(JSON.stringify(newData, null, 2));
-            
-            const response = await fetch(API_BASE, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Update data via Rent System - ${new Date().toLocaleString()}`,
-                    content: contentBase64,
-                    sha: currentFileSha // 乐观锁：只有当 SHA 匹配时才更新
-                })
-            });
-
-            if (!response.ok) {
-                const errData = await response.json();
-                if (errData.message && errData.message.includes('sha')) {
-                    throw new Error('数据冲突：其他人已修改数据，请刷新页面');
-                }
-                throw new Error(`Push Error: ${response.status}`);
-            }
-
-            const result = await response.json();
-            currentFileSha = result.content.sha; // 更新本地 SHA
-            return true;
-        } catch (error) {
-            console.error('Push Error:', error);
-            showToast('❌ 保存失败: ' + error.message, 'error');
-            return false;
-        }
-    }
-
-    // ================================================================
-    //  STORE MANAGEMENT
-    // ================================================================
-
-    function generateMonthlyDataStructure() {
+    // 生成月度租金初始数据（每个房间每个月）
+    function generateMonthlyData() {
         const data = {};
         MONTHS.forEach(month => {
             data[month] = {};
@@ -1084,115 +984,59 @@
         return data;
     }
 
-    async function initApp() {
-        document.getElementById('loadingOverlay').classList.remove('hidden');
-        
-        // 1. Try fetching from GitHub
-        let remoteData = await fetchFromGitHub();
-        
-        if (remoteData) {
-            store = remoteData;
-        } else {
-            // Fallback: If fetch fails or file missing, use local template
-            console.warn('Using local template data');
-            store.tenants = JSON.parse(JSON.stringify(INITIAL_TENANTS_TEMPLATE));
-            store.monthly = generateMonthlyDataStructure();
-            // Attempt to save this initial structure to GitHub
-            await pushToGitHub(store);
+    // ================================================================
+    //  STORE
+    // ================================================================
+
+    function getStore() {
+        const raw = localStorage.getItem('rentSystem');
+        if (raw) {
+            try { return JSON.parse(raw); } catch (e) {}
         }
-
-        // Ensure structure integrity
-        ensureDataIntegrity();
-        
-        // Render UI
-        renderDashboard();
-        renderTenants();
-        renderMonthly();
-        
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        showToast('✅ 数据已加载', 'success');
-
-        // Start Auto Sync
-        startAutoSync();
+        return null;
     }
 
-    function ensureDataIntegrity() {
-        // Ensure all rooms exist in tenants
+    function saveStore(store) {
+        localStorage.setItem('rentSystem', JSON.stringify(store));
+    }
+
+    function initStore() {
+        let store = getStore();
+        if (!store) {
+            store = {
+                tenants: JSON.parse(JSON.stringify(INITIAL_TENANTS)),
+                monthly: generateMonthlyData()
+            };
+            saveStore(store);
+        }
+        // 确保所有房间都存在
+        let needSave = false;
         ROOMS.forEach(room => {
             if (!store.tenants[room]) {
-                store.tenants[room] = { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '', emergency: '', emergencyPhone: '', idCard: '', note: '' };
+                store.tenants[room] = { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '',
+                    emergency: '', emergencyPhone: '', idCard: '', note: '' };
+                needSave = true;
             }
-        });
-        
-        // Ensure monthly structure exists
-        if (!store.monthly || Object.keys(store.monthly).length === 0) {
-            store.monthly = generateMonthlyDataStructure();
-        }
-        
-        MONTHS.forEach(month => {
-            if (!store.monthly[month]) store.monthly[month] = {};
-            ROOMS.forEach(room => {
+            MONTHS.forEach(month => {
+                if (!store.monthly[month]) store.monthly[month] = {};
                 if (!store.monthly[month][room]) {
-                    store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0, elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+                    store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0,
+                        actualElec: 0, elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0,
+                        waterFee: 0, total: 0 };
+                    needSave = true;
                 }
             });
         });
+        if (needSave) saveStore(store);
+        return store;
     }
 
-    async function saveStoreAndSync() {
-        // Optimistic UI update could happen here, but we wait for confirmation
-        const success = await pushToGitHub(store);
-        if (success) {
-            showToast('💾 数据已同步至云端', 'success');
-        } else {
-            // If failed, maybe trigger a refresh?
-            setTimeout(() => forceSync(), 2000);
-        }
-    }
+    // ================================================================
+    //  APP STATE
+    // ================================================================
 
-    async function forceSync() {
-        showToast('🔄 正在同步...', 'warning');
-        const remoteData = await fetchFromGitHub();
-        if (remoteData) {
-            // Simple conflict check: if remote is different from local, ask user? 
-            // For simplicity, we just overwrite local with remote if it's newer/different
-            // In a real app, you'd compare timestamps or hashes.
-            store = remoteData;
-            ensureDataIntegrity();
-            renderDashboard();
-            renderTenants();
-            renderMonthly();
-            showToast('✅ 同步完成', 'success');
-        }
-    }
-
-    function startAutoSync() {
-        if (syncInterval) clearInterval(syncInterval);
-        // Poll every 30 seconds
-        syncInterval = setInterval(async () => {
-            // Silent check: fetch header or small part? 
-            // GitHub API has rate limits. For personal use, fetching full JSON every 30s is usually fine.
-            // To be safe, we can just fetch and compare SHA if we stored remote SHA locally, 
-            // but for now, let's just fetch and update if different.
-            
-            // Note: Frequent polling might hit rate limits (5000/hr for authenticated). 
-            // 30s = 120 times/hour. Safe.
-            
-            const remoteData = await fetchFromGitHub();
-            if (remoteData) {
-                // Very basic diff check: stringify comparison
-                if (JSON.stringify(remoteData) !== JSON.stringify(store)) {
-                    console.log('Remote data changed, updating...');
-                    store = remoteData;
-                    ensureDataIntegrity();
-                    renderDashboard();
-                    renderTenants();
-                    renderMonthly();
-                    showToast('🔔 检测到云端数据更新，已自动刷新', 'warning');
-                }
-            }
-        }, 30000);
-    }
+    let store = initStore();
+    let chartInstance = null;
 
     // ================================================================
     //  UTILITY
@@ -1209,6 +1053,15 @@
         const str = String(val).replace(/[^0-9.]/g, '');
         const num = parseFloat(str);
         return isNaN(num) ? 0 : num;
+    }
+
+    function getRentNumber(tenant) {
+        const v = tenant.rent;
+        if (!v) return 0;
+        if (typeof v === 'number') return v;
+        const match = String(v).match(/(\d+\.?\d*)/);
+        if (match) return parseFloat(match[1]);
+        return 0;
     }
 
     function formatCurrency(val) {
@@ -1236,17 +1089,21 @@
             const page = this.dataset.page;
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('page-' + page).classList.add('active');
+            // 关闭移动端侧栏
             document.getElementById('sidebar').classList.remove('open');
+            // 渲染对应页面
             if (page === 'dashboard') renderDashboard();
             else if (page === 'tenants') renderTenants();
             else if (page === 'monthly') renderMonthly();
         });
     });
 
+    // 移动端菜单
     document.getElementById('menuToggle').addEventListener('click', function() {
         document.getElementById('sidebar').classList.toggle('open');
     });
 
+    // 响应式：显示移动端菜单按钮
     function checkMobile() {
         const toggle = document.getElementById('menuToggle');
         const brand = document.getElementById('mobileBrand');
@@ -1269,7 +1126,8 @@
     function renderDashboard() {
         const tenants = store.tenants;
         let total = ROOMS.length;
-        let occupied = 0, vacant = 0;
+        let occupied = 0,
+            vacant = 0;
         ROOMS.forEach(room => {
             if (tenants[room] && tenants[room].status === '在租') occupied++;
             else vacant++;
@@ -1278,6 +1136,7 @@
         document.getElementById('statOccupied').textContent = occupied;
         document.getElementById('statVacant').textContent = vacant;
 
+        // 年租金总计
         let totalRent = 0;
         MONTHS.forEach(month => {
             const mData = store.monthly[month];
@@ -1291,12 +1150,14 @@
         });
         document.getElementById('statTotalRent').textContent = formatCurrency(totalRent);
 
+        // 空置列表
         const vacantRooms = ROOMS.filter(r => tenants[r] && tenants[r].status === '空置');
         const container = document.getElementById('vacantList');
         if (vacantRooms.length === 0) {
             container.innerHTML = `<div class="empty-state"><div class="icon">🎉</div><p>暂无空置房间</p></div>`;
         } else {
-            let html = `<table><thead><tr><th>房号</th><th>月租金</th><th>备注</th></tr></thead><tbody>`;
+            let html =
+                `<table><thead><tr><th>房号</th><th>月租金</th><th>备注</th></tr></thead><tbody>`;
             vacantRooms.forEach(room => {
                 const t = tenants[room];
                 html += `<tr><td><strong>${room}</strong></td><td>${t.rent || '-'}</td><td>${t.note || '-'}</td></tr>`;
@@ -1305,6 +1166,8 @@
             container.innerHTML = html;
         }
         document.getElementById('vacantCount').textContent = `共 ${vacantRooms.length} 间`;
+
+        // 图表
         renderChart();
     }
 
@@ -1341,8 +1204,24 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { callback: v => '¥' + v } } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '¥' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) { return '¥' + value; }
+                        }
+                    }
+                }
             }
         });
     }
@@ -1375,7 +1254,13 @@
             return;
         }
 
-        let html = `<table><thead><tr><th>房号</th><th>状态</th><th>月租金</th><th>押金</th><th>租客</th><th>性别</th><th>电话</th><th>紧急联系人</th><th>紧急电话</th><th>备注</th><th>操作</th></tr></thead><tbody>`;
+        let html = `<table>
+                <thead><tr>
+                    <th>房号</th><th>状态</th><th>月租金</th><th>押金</th>
+                    <th>租客</th><th>性别</th><th>电话</th>
+                    <th>紧急联系人</th><th>紧急电话</th><th>备注</th>
+                    <th>操作</th>
+                </tr></thead><tbody>`;
 
         list.forEach(room => {
             const t = tenants[room];
@@ -1396,16 +1281,19 @@
                     </td>
                 </tr>`;
         });
+
         html += `</tbody></table>`;
         wrap.innerHTML = html;
     }
 
+    // ----- 弹窗 -----
     function openTenantModal(room = null) {
         const modal = document.getElementById('tenantModal');
         const form = document.getElementById('tenantForm');
         form.reset();
         document.getElementById('editRoom').value = '';
 
+        // 填充房号下拉
         const sel = document.getElementById('fRoom');
         sel.innerHTML = '<option value="">请选择房号</option>';
         ROOMS.forEach(r => {
@@ -1431,13 +1319,16 @@
                 document.getElementById('fEmergency').value = t.emergency || '';
                 document.getElementById('fEmergencyPhone').value = t.emergencyPhone || '';
                 document.getElementById('fNote').value = t.note || '';
+                // 禁用房号编辑
                 document.getElementById('fRoom').disabled = true;
             }
         } else {
             document.getElementById('tenantModalTitle').textContent = '添加租客';
             document.getElementById('fRoom').disabled = false;
+            // 默认状态
             document.getElementById('fStatus').value = '在租';
         }
+
         modal.classList.add('show');
     }
 
@@ -1446,7 +1337,7 @@
         document.getElementById('fRoom').disabled = false;
     }
 
-    async function saveTenant(e) {
+    function saveTenant(e) {
         e.preventDefault();
         const room = document.getElementById('fRoom').value;
         if (!room) { showToast('请选择房号', 'error'); return; }
@@ -1465,27 +1356,36 @@
         };
 
         store.tenants[room] = data;
+        saveStore(store);
         closeTenantModal();
         renderTenants();
-        
-        // Save to GitHub
-        await saveStoreAndSync();
+        showToast(`✅ ${room} 租客信息已保存`, 'success');
     }
 
     function editTenant(room) {
         openTenantModal(room);
     }
 
-    async function deleteTenant(room) {
+    function deleteTenant(room) {
         if (!confirm(`确定要清空 ${room} 的租客信息吗？`)) return;
         store.tenants[room] = {
-            status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '',
-            emergency: '', emergencyPhone: '', idCard: '', note: ''
+            status: '空置',
+            rent: '',
+            deposit: '',
+            name: '',
+            gender: '',
+            phone: '',
+            emergency: '',
+            emergencyPhone: '',
+            idCard: '',
+            note: ''
         };
+        saveStore(store);
         renderTenants();
-        await saveStoreAndSync();
+        showToast(`🗑️ ${room} 租客信息已清空`, 'warning');
     }
 
+    // 点击弹窗外部关闭
     document.getElementById('tenantModal').addEventListener('click', function(e) {
         if (e.target === this) closeTenantModal();
     });
@@ -1496,7 +1396,7 @@
 
     function carryForward(month) {
         const monthIndex = MONTHS.indexOf(month);
-        if (monthIndex <= 0) return;
+        if (monthIndex <= 0) return; // 一月无上月
         const prevMonth = MONTHS[monthIndex - 1];
         const prevData = store.monthly[prevMonth];
         if (!prevData) return;
@@ -1508,11 +1408,14 @@
         ROOMS.forEach(room => {
             const prevRow = prevData[room];
             if (!prevRow) return;
+            // 确保当前房间有数据对象
             if (!currentData[room]) {
-                currentData[room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0, elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+                currentData[room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                    elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
                 updated = true;
             }
             const curRow = currentData[room];
+            // 只有当前月 lastElec 为空（或0）时，才结转
             if (curRow.lastElec === undefined || curRow.lastElec === null || curRow.lastElec === 0) {
                 curRow.lastElec = prevRow.thisElec || 0;
                 updated = true;
@@ -1522,46 +1425,75 @@
                 updated = true;
             }
         });
-        // Note: We don't auto-save here to avoid spamming API. It saves when user edits a field.
+        if (updated) {
+            saveStore(store);
+        }
     }
 
     function renderMonthly() {
         const month = document.getElementById('monthSelector').value;
+        // 新增：先结转上月读数
         carryForward(month);
 
         const mData = store.monthly[month];
         const tenants = store.tenants;
+
         document.getElementById('monthlyTitle').textContent = `📋 ${month}租金明细`;
 
         let totalSum = 0;
-        let html = `<table><thead><tr><th>房号</th><th>租客</th><th>基本房租</th><th>上月用电</th><th>本月用电</th><th>实际用电</th><th>电费</th><th>上月用水</th><th>本月用水</th><th>实际用水</th><th>水费</th><th>房租总计</th></tr></thead><tbody>`;
+        let html = `<table>
+                <thead><tr>
+                    <th>房号</th><th>租客</th><th>基本房租</th>
+                    <th>上月用电</th><th>本月用电</th><th>实际用电</th><th>电费</th>
+                    <th>上月用水</th><th>本月用水</th><th>实际用水</th><th>水费</th>
+                    <th>房租总计</th>
+                </tr></thead><tbody>`;
 
         ROOMS.forEach(room => {
-            const row = mData[room] || { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0, elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+            const row = mData[room] || { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
             const tenantInfo = tenants[room] || {};
             const isOccupied = tenantInfo.status === '在租';
 
             if (!isOccupied) {
-                html += `<tr style="color:var(--gray-400);"><td>${room}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+                html += `<tr style="color:var(--gray-400);">
+                        <td>${room}</td><td>-</td><td>-</td>
+                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                        <td>-</td>
+                    </tr>`;
                 return;
             }
 
+            // ★ 修改点：获取当前值用于输入框
             const thisElec = row.thisElec ?? '';
             const thisWater = row.thisWater ?? '';
+
             const baseRent = tenantInfo.rent || row.baseRent || '';
             const total = parseFloat(row.total) || 0;
             totalSum += total;
 
+            // ★ 修改点：添加输入框并绑定事件
             html += `<tr>
                     <td><strong>${room}</strong></td>
                     <td>${tenantInfo.name || row.tenant || '-'}</td>
                     <td>${baseRent || '-'}</td>
                     <td>${row.lastElec ?? '-'}</td>
-                    <td><input type="number" step="0.01" value="${thisElec}" style="width:70px; padding:4px 6px; border:1px solid var(--gray-300); border-radius:6px;" onchange="updateMonthlyField('${month}','${room}','thisElec', this.value)" onkeydown="if(event.key==='Enter') this.blur()" /></td>
+                    <td>
+                        <input type="number" step="0.01" value="${thisElec}"
+                               style="width:70px; padding:4px 6px; border:1px solid var(--gray-300); border-radius:6px;"
+                               onchange="updateMonthlyField('${month}','${room}','thisElec', this.value)"
+                               onkeydown="if(event.key==='Enter') this.blur()" />
+                    </td>
                     <td>${row.actualElec ?? '-'}</td>
                     <td>${row.elecFee ? '¥' + row.elecFee : '-'}</td>
                     <td>${row.lastWater ?? '-'}</td>
-                    <td><input type="number" step="0.01" value="${thisWater}" style="width:70px; padding:4px 6px; border:1px solid var(--gray-300); border-radius:6px;" onchange="updateMonthlyField('${month}','${room}','thisWater', this.value)" onkeydown="if(event.key==='Enter') this.blur()" /></td>
+                    <td>
+                        <input type="number" step="0.01" value="${thisWater}"
+                               style="width:70px; padding:4px 6px; border:1px solid var(--gray-300); border-radius:6px;"
+                               onchange="updateMonthlyField('${month}','${room}','thisWater', this.value)"
+                               onkeydown="if(event.key==='Enter') this.blur()" />
+                    </td>
                     <td>${row.actualWater ?? '-'}</td>
                     <td>${row.waterFee ? '¥' + row.waterFee : '-'}</td>
                     <td><strong>${total ? '¥' + Math.round(total) : '-'}</strong></td>
@@ -1573,14 +1505,17 @@
         document.getElementById('monthlyTotal').textContent = `总计：${formatCurrency(totalSum)}`;
     }
 
-    async function updateMonthlyField(month, room, field, value) {
+    // ★ 修改点：新增更新月度字段函数
+    function updateMonthlyField(month, room, field, value) {
         if (!store.monthly[month]) store.monthly[month] = {};
         if (!store.monthly[month][room]) {
-            store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0, elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+            store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
         }
         const row = store.monthly[month][room];
         row[field] = parseFloat(value) || 0;
 
+        // 重新计算
         const lastElec = row.lastElec || 0;
         const thisElec = row.thisElec || 0;
         row.actualElec = Math.max(0, thisElec - lastElec);
@@ -1595,21 +1530,45 @@
         const baseRent = tenant && tenant.rent ? parseRentValue(tenant.rent) : 0;
         row.total = baseRent + (row.elecFee || 0) + (row.waterFee || 0);
 
-        renderMonthly(); // Refresh UI immediately
-        await saveStoreAndSync(); // Save to GitHub
+        saveStore(store);
+        renderMonthly(); // 刷新表格
+    }
+
+
+    // ================================================================
+    //  REFRESH
+    // ================================================================
+
+    function refreshData() {
+        store = getStore();
+        if (!store) {
+            store = initStore();
+        }
+        renderDashboard();
+        renderTenants();
+        renderMonthly();
+        showToast('🔄 数据已刷新', 'success');
     }
 
     // ================================================================
     //  INIT
     // ================================================================
 
+    // 首次加载渲染
+    renderDashboard();
+    renderTenants();
+    renderMonthly();
+
+    // 点击外部关闭弹窗的键盘支持
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') closeTenantModal();
+        if (e.key === 'Escape') {
+            closeTenantModal();
+        }
     });
 
-    // Start App
-    initApp();
-
+    console.log('🏠 房屋出租管理系统已启动');
+    console.log('📊 数据存储在 localStorage 中');
+    console.log('🏠 房屋出租管理系统已启动（含月度水电编辑）');
 </script>
 
 </body>
