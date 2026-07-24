@@ -7,7 +7,7 @@
     <title>房屋出租管理系统</title>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- SheetJS (XLSX) for Excel Export/Import -->
+    <!-- SheetJS (XLSX) for Excel Export & Import -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -48,7 +48,6 @@
 
         html {
             font-size: 16px;
-            /* 基准字号，配合 clamp 使用 */;
         }
 
         body {
@@ -57,7 +56,6 @@
             color: var(--gray-800);
             display: flex;
             min-height: 100vh;
-            /* ★ 防止内容溢出 */
             overflow-x: hidden;
         }
 
@@ -91,7 +89,6 @@
             bottom: 0;
             z-index: 100;
             transition: transform 0.3s ease;
-            /* ★ 防止侧边栏溢出 */
             overflow-y: auto;
         }
 
@@ -294,7 +291,6 @@
         .table-scroll {
             overflow-x: auto;
             padding: 0 4px 4px 4px;
-            /* ★ 触控优化 */
             -webkit-overflow-scrolling: touch;
         }
         table {
@@ -302,7 +298,6 @@
             border-collapse: collapse;
             font-size: clamp(12px, 1.1vw, 14px);
             min-width: 600px;
-            /* 保证在小屏可滑动 */;
         }
         table th {
             background: var(--gray-50);
@@ -424,7 +419,6 @@
             outline: none;
             transition: var(--transition);
             min-height: 34px;
-            /* 触控友好 */;
         }
         .filter-group select:focus,
         .filter-group input:focus {
@@ -478,7 +472,6 @@
             padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 32px);
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             animation: modalIn 0.25s ease;
-            /* ★ 触控优化 */
             -webkit-overflow-scrolling: touch;
         }
         @keyframes modalIn {
@@ -519,7 +512,6 @@
             transition: var(--transition);
             background: white;
             min-height: 40px;
-            /* 触控友好 */;
         }
         .modal .form-group input:focus,
         .modal .form-group select:focus,
@@ -666,10 +658,9 @@
         }
 
         /* ================================================================
-                   响应式断点 —— 针对手机、平板、电脑精细调优
+                   响应式断点
                    ================================================================ */
 
-        /* ---- 平板及以下 (≤ 1024px) ---- */
         @media (max-width: 1024px) {
             :root {
                 --sidebar-width: 200px;
@@ -696,7 +687,6 @@
             }
         }
 
-        /* ---- 手机 (≤ 768px) ---- */
         @media (max-width: 768px) {
             :root {
                 --sidebar-width: 260px;
@@ -722,7 +712,6 @@
                 display: flex !important;
             }
 
-            /* 移动端品牌标识 */
             #mobileBrand {
                 display: inline !important;
                 font-size: 18px;
@@ -809,7 +798,6 @@
                 padding: 6px 12px;
             }
 
-            /* 移动端 toast 居中 */
             .toast {
                 left: 16px;
                 right: 16px;
@@ -819,7 +807,6 @@
                 padding: 12px 16px;
             }
 
-            /* 移动端表格输入框缩小 */
             table td input[type="number"] {
                 width: 56px !important;
                 font-size: 12px;
@@ -828,7 +815,6 @@
             }
         }
 
-        /* ---- 小手机 (≤ 480px) ---- */
         @media (max-width: 480px) {
             :root {
                 --card-min-width: 100px;
@@ -908,7 +894,6 @@
             }
         }
 
-        /* ---- 大屏 / 桌面 (≥ 1400px) 优化 ---- */
         @media (min-width: 1400px) {
             :root {
                 --sidebar-width: 280px;
@@ -938,7 +923,6 @@
             }
         }
 
-        /* ---- 横屏手机优化 ---- */
         @media (max-width: 768px) and (orientation: landscape) {
             .stats-grid {
                 grid-template-columns: repeat(4, 1fr);
@@ -960,7 +944,6 @@
             }
         }
 
-        /* ---- 打印样式 ---- */
         @media print {
             .sidebar,
             .menu-toggle,
@@ -1012,7 +995,7 @@
         </button>
     </nav>
     <div class="sidebar-footer">
-        v2.5 · 支持Excel批量导入
+        v2.5 · 支持远程数据同步
     </div>
 </aside>
 
@@ -1160,9 +1143,8 @@
                 </div>
 
                 <button class="btn btn-outline" onclick="handleExportAction()">⬇️ 导出</button>
-                <!-- 修改：支持 csv, xlsx, xls -->
                 <button class="btn btn-warning" onclick="document.getElementById('importMonthlyFile').click()">⬆️ 导入</button>
-                <input type="file" id="importMonthlyFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleImport(this, 'monthly')" />
+                <input type="file" id="importMonthlyFile" accept=".csv" style="display:none" onchange="handleImport(this, 'monthly')" />
             </div>
         </div>
 
@@ -1349,7 +1331,7 @@
     }
 
     // ================================================================
-    //  STORE
+    //  STORE & REMOTE INITIALIZATION
     // ================================================================
 
     function getStore() {
@@ -1364,33 +1346,180 @@
         localStorage.setItem('rentSystem', JSON.stringify(store));
     }
 
-    function initStore() {
+    /**
+     * 新增：从远程文件加载数据
+     * @returns {Promise<Object>} 返回解析后的 store 对象
+     */
+    async function loadRemoteData() {
+        console.log('📡 尝试从远程加载初始数据...');
+        
+        // 定义文件名，确保与 HTML 同目录
+        const csvUrl = './租客列表.csv';
+        const xlsxUrl = './月度租金.xlsx';
+
+        let remoteTenants = null;
+        let remoteMonthly = null;
+
+        // 1. 并行请求两个文件
+        const promises = [
+            fetch(csvUrl).then(res => {
+                if (!res.ok) throw new Error('CSV not found');
+                return res.arrayBuffer();
+            }).catch(err => {
+                console.warn('⚠️ CSV 加载失败，将使用默认值:', err.message);
+                return null;
+            }),
+            fetch(xlsxUrl).then(res => {
+                if (!res.ok) throw new Error('Excel not found');
+                return res.arrayBuffer();
+            }).catch(err => {
+                console.warn('⚠️ Excel 加载失败，将使用默认值:', err.message);
+                return null;
+            })
+        ];
+
+        const [csvBuffer, xlsxBuffer] = await Promise.all(promises);
+
+        // 2. 解析 CSV (租客信息)
+        if (csvBuffer) {
+            try {
+                const text = smartDecode(csvBuffer);
+                const data = parseCSV(text);
+                if (data.length > 1) {
+                    // 复用现有的 importTenants 逻辑，但我们需要手动构建对象而不是直接修改 store
+                    // 这里我们创建一个临时对象来存储解析结果
+                    const tempTenants = {};
+                    // 模拟 importTenants 的逻辑
+                    for (let i = 1; i < data.length; i++) {
+                        const row = data[i];
+                        if (row.length < 2) continue;
+                        const room = row[0].trim();
+                        if (ROOMS.includes(room)) {
+                            const status = row[1].trim();
+                            tempTenants[room] = {
+                                status: (status === '在租' || status === '空置') ? status : '空置',
+                                rent: row[2] || '',
+                                deposit: row[3] || '',
+                                name: row[4] || '',
+                                gender: row[5] || '',
+                                phone: row[6] || '',
+                                emergency: row[7] || '',
+                                emergencyPhone: row[8] || '',
+                                note: row[9] || ''
+                            };
+                        }
+                    }
+                    remoteTenants = tempTenants;
+                    console.log('✅ CSV 解析成功');
+                }
+            } catch (e) {
+                console.error('❌ CSV 解析错误:', e);
+            }
+        }
+
+        // 3. 解析 Excel (月度租金)
+        if (xlsxBuffer && typeof XLSX !== 'undefined') {
+            try {
+                const workbook = XLSX.read(xlsxBuffer, { type: 'array' });
+                const tempMonthly = {};
+                
+                // 遍历所有 Sheet
+                workbook.SheetNames.forEach(sheetName => {
+                    // 只处理月份相关的 Sheet
+                    if (MONTHS.includes(sheetName)) {
+                        const worksheet = workbook.Sheets[sheetName];
+                        // 转换为 JSON (数组格式，header:1 表示二维数组)
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        
+                        tempMonthly[sheetName] = {};
+                        
+                        // 跳过表头 (index 0)，从 index 1 开始
+                        for (let i = 1; i < jsonData.length; i++) {
+                            const row = jsonData[i];
+                            if (!row || row.length < 2) continue;
+                            
+                            const room = String(row[0]).trim(); // 房号可能在 Excel 中被读为数字，转为字符串
+                            if (ROOMS.includes(room)) {
+                                tempMonthly[sheetName][room] = {
+                                    tenant: row[1] || '',
+                                    baseRent: row[2] || '',
+                                    lastElec: parseFloat(row[3]) || 0,
+                                    thisElec: parseFloat(row[4]) || 0,
+                                    actualElec: parseFloat(row[5]) || 0,
+                                    elecFee: parseFloat(row[6]) || 0,
+                                    lastWater: parseFloat(row[7]) || 0,
+                                    thisWater: parseFloat(row[8]) || 0,
+                                    actualWater: parseFloat(row[9]) || 0,
+                                    waterFee: parseFloat(row[10]) || 0,
+                                    total: parseFloat(row[11]) || 0
+                                };
+                            }
+                        }
+                    }
+                });
+                remoteMonthly = tempMonthly;
+                console.log('✅ Excel 解析成功');
+            } catch (e) {
+                console.error('❌ Excel 解析错误:', e);
+            }
+        }
+
+        // 4. 合并数据并返回
+        // 如果远程加载失败或部分失败，回退到硬编码数据
+        const finalTenants = remoteTenants || JSON.parse(JSON.stringify(INITIAL_TENANTS));
+        const finalMonthly = remoteMonthly || generateMonthlyData();
+
+        // 确保所有房间都存在（补全缺失的房间）
+        ROOMS.forEach(room => {
+            if (!finalTenants[room]) {
+                finalTenants[room] = { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '',
+                    emergency: '', emergencyPhone: '', idCard: '', note: '' };
+            }
+            MONTHS.forEach(month => {
+                if (!finalMonthly[month]) finalMonthly[month] = {};
+                if (!finalMonthly[month][room]) {
+                    finalMonthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                        elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+                }
+            });
+        });
+
+        return {
+            tenants: finalTenants,
+            monthly: finalMonthly
+        };
+    }
+
+    /**
+     * 修改后的 initStore：支持异步初始化
+     */
+    async function initStoreAsync() {
+        // 1. 检查本地存储
         let store = getStore();
-        if (!store) {
+        
+        if (store) {
+            console.log('💾 检测到本地数据，直接加载。');
+            return store;
+        }
+
+        console.log('🆕 首次访问，尝试加载远程数据...');
+        try {
+            // 2. 尝试加载远程数据
+            store = await loadRemoteData();
+            saveStore(store);
+            console.log('🎉 远程数据加载并保存成功！');
+            showToast('✅ 初始数据已从服务器同步', 'success');
+        } catch (error) {
+            console.error('🔥 初始化严重错误:', error);
+            // 极端情况下的回退
             store = {
                 tenants: JSON.parse(JSON.stringify(INITIAL_TENANTS)),
                 monthly: generateMonthlyData()
             };
             saveStore(store);
+            showToast('⚠️ 使用内置默认数据', 'warning');
         }
-        // 确保所有房间都存在
-        let needSave = false;
-        ROOMS.forEach(room => {
-            if (!store.tenants[room]) {
-                store.tenants[room] = { status: '空置', rent: '', deposit: '', name: '', gender: '', phone: '',
-                    emergency: '', emergencyPhone: '', idCard: '', note: '' };
-                needSave = true;
-            }
-            MONTHS.forEach(month => {
-                if (!store.monthly[month]) store.monthly[month] = {};
-                if (!store.monthly[month][room]) {
-                    store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
-                        elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
-                    needSave = true;
-                }
-            });
-        });
-        if (needSave) saveStore(store);
+        
         return store;
     }
 
@@ -1398,7 +1527,7 @@
     //  APP STATE
     // ================================================================
 
-    let store = initStore();
+    let store = null; // 初始化为 null，等待异步加载
     let chartInstance = null;
 
     // ================================================================
@@ -1548,53 +1677,42 @@
     }
 
     // ================================================================
-    //  IMPORT HANDLERS
+    //  IMPORT
     // ================================================================
 
     function handleImport(input, type) {
         const file = input.files[0];
         if (!file) return;
 
-        const fileName = file.name.toLowerCase();
-        const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
-
         const reader = new FileReader();
-
         reader.onload = function(e) {
             try {
+                const arrayBuffer = e.target.result;
+                let text = smartDecode(arrayBuffer);
+                if (text.charCodeAt(0) === 0xFEFF) {
+                    text = text.slice(1);
+                }
+                if (!text || text.trim().length === 0) {
+                    showToast('❌ 文件内容为空', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                const data = parseCSV(text);
+                if (data.length < 2) {
+                    showToast('❌ 文件格式错误：至少需要表头 + 一行数据', 'error');
+                    input.value = '';
+                    return;
+                }
+
                 if (type === 'tenant') {
-                    // 租客导入只支持 CSV
-                    if (isExcel) {
-                        showToast('❌ 租客导入仅支持 CSV 格式', 'error');
-                        input.value = '';
-                        return;
-                    }
-                    const arrayBuffer = e.target.result;
-                    let text = smartDecode(arrayBuffer);
-                    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-
-                    const data = parseCSV(text);
-                    if (data.length < 2) throw new Error('文件格式错误');
-
                     importTenants(data);
                     showToast('✅ 租客数据导入成功', 'success');
-
                 } else if (type === 'monthly') {
-                    // 月度租金导入：区分 Excel 和 CSV
-                    if (isExcel) {
-                        importExcelMonthly(e.target.result);
-                    } else {
-                        // CSV 逻辑
-                        const arrayBuffer = e.target.result;
-                        let text = smartDecode(arrayBuffer);
-                        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-
-                        const data = parseCSV(text);
-                        if (data.length < 2) throw new Error('文件格式错误');
-
-                        importMonthly(data);
-                        showToast('✅ 月度数据导入成功', 'success');
-                    }
+                    importMonthly(data);
+                    showToast('✅ 月度数据导入成功', 'success');
+                } else {
+                    showToast('❌ 未知导入类型', 'error');
                 }
             } catch (err) {
                 console.error(err);
@@ -1603,87 +1721,7 @@
                 input.value = '';
             }
         };
-
-        if (isExcel && type === 'monthly') {
-            reader.readAsArrayBuffer(file);
-        } else {
-            reader.readAsArrayBuffer(file); // 统一读取 ArrayBuffer，CSV 再转文本
-        }
-    }
-
-    // 处理 Excel 多 Sheet 导入
-    function importExcelMonthly(arrayBuffer) {
-        if (typeof XLSX === 'undefined') {
-            showToast('❌ Excel处理库未加载', 'error');
-            return;
-        }
-
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        let importedCount = 0;
-        const matchedMonths = [];
-
-        workbook.SheetNames.forEach(sheetName => {
-            // 检查 Sheet 名称是否匹配预定义月份
-            if (MONTHS.includes(sheetName)) {
-                const worksheet = workbook.Sheets[sheetName];
-                // 将 Sheet 转换为 JSON 数组 (第一行为表头)
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                if (jsonData && jsonData.length > 1) {
-                    // 执行导入逻辑
-                    processMonthlyData(sheetName, jsonData);
-                    importedCount++;
-                    matchedMonths.push(sheetName);
-                }
-            }
-        });
-
-        if (importedCount > 0) {
-            saveStore(store);
-            renderMonthly(); // 刷新当前视图
-            showToast(`✅ 成功导入 ${importedCount} 个月份数据: ${matchedMonths.join(', ')}`, 'success');
-        } else {
-            showToast('⚠️ Excel中未找到匹配的月份工作表（需命名为：一月, 二月...）', 'warning');
-        }
-    }
-
-    // 通用数据处理逻辑（供 CSV 和 Excel 共用）
-    function processMonthlyData(month, dataRows) {
-        if (!store.monthly[month]) store.monthly[month] = {};
-
-        // dataRows[0] 是表头，从 dataRows[1] 开始是数据
-        for (let i = 1; i < dataRows.length; i++) {
-            const row = dataRows[i];
-            if (!row || row.length < 2) continue;
-
-            const room = String(row[0]).trim();
-            if (!ROOMS.includes(room)) continue;
-
-            if (!store.monthly[month][room]) {
-                store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
-                    elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
-            }
-
-            const mRow = store.monthly[month][room];
-            // 映射列索引: 0:房号, 1:租客, 2:基本房租, 3:上月用电, 4:本月用电, 5:实际用电, 6:电费, 7:上月用水, 8:本月用水, 9:实际用水, 10:水费, 11:总计
-            mRow.tenant = row[1] || '';
-            mRow.baseRent = row[2] || '';
-            mRow.lastElec = parseFloat(row[3]) || 0;
-            mRow.thisElec = parseFloat(row[4]) || 0;
-            mRow.actualElec = parseFloat(row[5]) || 0;
-            mRow.elecFee = parseFloat(row[6]) || 0;
-            mRow.lastWater = parseFloat(row[7]) || 0;
-            mRow.thisWater = parseFloat(row[8]) || 0;
-            mRow.actualWater = parseFloat(row[9]) || 0;
-            mRow.waterFee = parseFloat(row[10]) || 0;
-            mRow.total = parseFloat(row[11]) || 0;
-        }
-    }
-
-    // 保留原有的 CSV 导入入口，内部调用通用逻辑
-    function importMonthly(data) {
-        const month = document.getElementById('monthSelector').value;
-        processMonthlyData(month, data);
+        reader.readAsArrayBuffer(file);
     }
 
     // ================================================================
@@ -1844,7 +1882,7 @@
     }
 
     // ================================================================
-    //  IMPORT DATA PROCESSORS (Legacy for Tenants)
+    //  IMPORT DATA PROCESSORS
     // ================================================================
 
     function importTenants(data) {
@@ -1873,6 +1911,39 @@
         }
         saveStore(store);
         renderTenants();
+    }
+
+    function importMonthly(data) {
+        const month = document.getElementById('monthSelector').value;
+        if (!store.monthly[month]) store.monthly[month] = {};
+
+        for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (row.length < 2) continue;
+
+            const room = row[0].trim();
+            if (!ROOMS.includes(room)) continue;
+
+            if (!store.monthly[month][room]) {
+                store.monthly[month][room] = { tenant: '', baseRent: '', lastElec: 0, thisElec: 0, actualElec: 0,
+                    elecFee: 0, lastWater: 0, thisWater: 0, actualWater: 0, waterFee: 0, total: 0 };
+            }
+
+            const mRow = store.monthly[month][room];
+            mRow.tenant = row[1] || '';
+            mRow.baseRent = row[2] || '';
+            mRow.lastElec = parseFloat(row[3]) || 0;
+            mRow.thisElec = parseFloat(row[4]) || 0;
+            mRow.actualElec = parseFloat(row[5]) || 0;
+            mRow.elecFee = parseFloat(row[6]) || 0;
+            mRow.lastWater = parseFloat(row[7]) || 0;
+            mRow.thisWater = parseFloat(row[8]) || 0;
+            mRow.actualWater = parseFloat(row[9]) || 0;
+            mRow.waterFee = parseFloat(row[10]) || 0;
+            mRow.total = parseFloat(row[11]) || 0;
+        }
+        saveStore(store);
+        renderMonthly();
     }
 
     // ================================================================
@@ -2319,29 +2390,44 @@
     function refreshData() {
         store = getStore();
         if (!store) {
-            store = initStore();
+            // 如果本地被清空，重新尝试加载远程或默认
+            initStoreAsync().then(s => {
+                store = s;
+                renderDashboard();
+                renderTenants();
+                renderMonthly();
+            });
+        } else {
+            renderDashboard();
+            renderTenants();
+            renderMonthly();
         }
-        renderDashboard();
-        renderTenants();
-        renderMonthly();
         showToast('🔄 数据已刷新', 'success');
     }
 
     // ================================================================
-    //  INIT
+    //  INIT (Modified Boot Sequence)
     // ================================================================
 
-    renderDashboard();
-    renderTenants();
-    renderMonthly();
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeTenantModal();
-        }
-    });
-
-    console.log('🏠 房屋出租管理系统 v2.5 已启动（支持Excel批量导入）');
+    // 使用立即执行异步函数来启动应用
+    (async function bootstrap() {
+        // 1. 初始化数据
+        store = await initStoreAsync();
+        
+        // 2. 渲染页面
+        renderDashboard();
+        renderTenants();
+        renderMonthly();
+        
+        // 3. 绑定事件监听器等
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeTenantModal();
+            }
+        });
+        
+        console.log('🏠 房屋出租管理系统 v2.5 (Remote Sync) 已启动');
+    })();
 </script>
 
 </body>
